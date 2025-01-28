@@ -29,7 +29,7 @@ class EventController {
     }
   }
 
-  async getEvents(req: Request, res: Response, next: NextFunction) {
+  async getEvent(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await eventService.getList(req);
       responseHandler(res, "fetching event", data);
