@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums / gak boleh ngasal
+enum Role {
+  Organizer
+  Customer
+}
+
+enum Transaction_status {
+  Waiting_For_Payment
+  Waiting_For_Admin_Confirmation
+  Done
+  Rejected
+  Expired
+  Cancelled
+}
+
+// Model Definitions
+model User {
+  id             Int         @id @default(autoincrement())
+  full_name      String     @db.VarChar(255)
+  email          String         @unique @db.VarChar(100)
+  profile_picture Bytes?         // bytea untuk image
+  password       String     @db.VarChar(100)
+  role           Role       @default(Customer)
+  username       String         @unique
+  phone_number   String
+  referral_code  String         @unique
+  referred_by    String?        // yang referral siapa (optional)
+  created_at     DateTime   @default(now())
+  updated_at     DateTime @updatedAt
+  deleted_at     DateTime?      // untuk soft-delete
+
+  // Relations
+  points         Point[]        // 1 untuk banyak relasi
+  transactions   Transaction[]  // 1 untuk banyak relasi terhadap transaksi
+  organizers Organizer?
+  review Review?
+
+  @@map("users")
+}
+
+model Point {
+  id           Int     @id @default(autoincrement())
+  user_id      Int      @unique
+  amount       Int      
+  expired_at   DateTime
+  used_amount  Int
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+
+  // Relations
+  user         User       @relation(fields: [user_id], references: [id])
+  @@map("points")
+}
+
+model Event {
+  id            Int     @id @default(autoincrement())
+  name          String  @db.VarChar(255)
+  description   String  @db.Text
+  location      String  @db.VarChar(100)
+  available_seats Int
+  created_by    Int
+  slug          String    @unique
+  price         Decimal   @db.Decimal(18,2)
+  image_src     String    
+  start_date    DateTime  
+  end_date      DateTime  
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
+
+  // Relations
+  creator       Organizer       @relation("CreatedEvents", fields: [created_by], references: [id])
+  coupons       Coupon[]   // onetomany
+  transactions Transaction[] // onetomany
+  review Review[]
+  category Catagory[]
+  @@map("events")
+}
+
+model Coupon {
+  id           Int     @id @default(autoincrement())
+  code         String  @db.VarChar(100)
+  event_id     Int?
+  discount     Int
+  expired_at   DateTime
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+
+  // Relations
+  event        Event?     @relation(fields: [event_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  transactions Transaction[] // onetomany
+  @@map("coupons")
+}
+
+model Transaction {
+  id           Int      @id @default(autoincrement())
+  user_id      Int      @unique
+  status       Transaction_status @default(Waiting_For_Payment)
+  event_id     Int      @unique
+  quantity     Int
+  price        Decimal  @db.Decimal(18,2)
+  coupon_id    Int?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime?
+
+  // Relations
+  event        Event        @relation(fields: [event_id], references: [id])
+  coupon       Coupon?      @relation(fields: [coupon_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  user         User       @relation(fields: [user_id], references: [id])
+  
+  @@map("transactions")
+}
+
+model Organizer {
+  id            Int @id @default(autoincrement())
+  description   String @db.Text
+  email         String @db.VarChar(255)
+  website       String @db.VarChar(255)
+  instagram     String @db.VarChar(255)
+  banner_image  String @db.VarChar(255)
+  profile_image String @db.VarChar(255)
+  address_line  String @db.Text
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  deleted_at    DateTime?
+
+  user_id       Int @unique
+  riview_id     Int
+
+  user User @relation(fields: [user_id],references: [id])
+  eventsCreated  Event[]        @relation("CreatedEvents")
+
+   @@map("organizers")
+  }
+
+model Review {
+    id Int @id @default(autoincrement())
+    description String @db.Text
+    rating Decimal @db.Decimal(2,1)
+    event_id Int 
+    user_id Int @unique
+
+    user User @relation(fields: [user_id],references: [id])
+    event Event @relation(fields: [event_id],references: [id])
+
+  @@map("reviews")
+}
+
+model Catagory {
+  id Int @id @default(autoincrement())
+  catagory_name String @db.VarChar(255)
+  event Event[]
+
+  @@map("catagories")
+}
