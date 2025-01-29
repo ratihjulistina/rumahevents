@@ -15,7 +15,7 @@ export class App {
   }
 
   private routes() {
-    this.app.use("api/events", eventRouter());
+    this.app.use("/api/events", eventRouter());
   }
 
   private configure() {
