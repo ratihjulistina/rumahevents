@@ -38,6 +38,15 @@ class EventController {
     }
   }
 
+  async getNewestEvent(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await eventService.getNewestEvent(req);
+      responseHandler(res, "fetching the newest events", data);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getEventBySlug(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await eventService.getBySlug(req);

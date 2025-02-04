@@ -1,3 +1,4 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -30,25 +31,34 @@ enum Transaction_status {
 
 // Model Definitions
 model User {
-  id             Int         @id @default(autoincrement())
-  full_name      String     @db.VarChar(255)
-  email          String         @unique @db.VarChar(100)
-  profile_picture Bytes?         // bytea untuk image
-  password       String     @db.VarChar(100)
-  role           Role       @default(Customer)
-  username       String         @unique
-  phone_number   String
-  referral_code  String         @unique
-  referred_by    String?        // yang referral siapa (optional)
-  created_at     DateTime   @default(now())
-  updated_at     DateTime @updatedAt
-  deleted_at     DateTime?      // untuk soft-delete
+  id         Int       @id @default(autoincrement())
+  first_name String    @db.VarChar(100)
+  last_name  String    @db.VarChar(100)
+  email      String    @unique @db.VarChar(100)
+  password   String    @db.VarChar(100)
+  img_src    String?
+  role       Role      @default(Customer)
+  
+  // id             Int         @id @default(autoincrement())
+  // full_name      String     @db.VarChar(255)
+  // email          String         @unique @db.VarChar(100)
+  // profile_picture Bytes?         // bytea untuk image
+  // password       String     @db.VarChar(100)
+  // role           Role       @default(Customer)
+  // username       String         @unique
+  // phone_number   String
+  // referral_code  String         @unique
+  // referred_by    String?        // yang referral siapa (optional)
+  // created_at     DateTime   @default(now())
+  // updated_at     DateTime @updatedAt
+  // deleted_at     DateTime?      // untuk soft-delete
 
   // Relations
   points         Point[]        // 1 untuk banyak relasi
   transactions   Transaction[]  // 1 untuk banyak relasi terhadap transaksi
   organizers Organizer?
   review Review?
+  // eventsCreated  Event[]        @relation("CreatedEvents")
 
   @@map("users")
 }
@@ -75,7 +85,7 @@ model Event {
   location      String  @db.VarChar(100)
   available_seats Int
   created_by    Int
-  slug          String    @unique
+  slug          String    @db.Text @unique 
   price         Decimal   @db.Decimal(18,2)
   image_src     String    
   start_date    DateTime  
@@ -83,13 +93,14 @@ model Event {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   deleted_at    DateTime?
+  category      String    @db.VarChar(100)
 
   // Relations
-  creator       Organizer       @relation("CreatedEvents", fields: [created_by], references: [id])
+  // creator       User      @relation("CreatedEvents", fields: [created_by], references: [id])
   coupons       Coupon[]   // onetomany
   transactions Transaction[] // onetomany
   review Review[]
-  category Catagory[]
+  //category Catagory[]
   @@map("events")
 }
 
@@ -112,6 +123,7 @@ model Coupon {
 model Transaction {
   id           Int      @id @default(autoincrement())
   user_id      Int      @unique
+  payment_proof String  @db.VarChar(255)
   status       Transaction_status @default(Waiting_For_Payment)
   event_id     Int      @unique
   quantity     Int
@@ -131,13 +143,12 @@ model Transaction {
 
 model Organizer {
   id            Int @id @default(autoincrement())
-  description   String @db.Text
-  email         String @db.VarChar(255)
-  website       String @db.VarChar(255)
-  instagram     String @db.VarChar(255)
-  banner_image  String @db.VarChar(255)
-  profile_image String @db.VarChar(255)
-  address_line  String @db.Text
+  description   String? @db.Text
+  website       String? @db.VarChar(255)
+  instagram     String? @db.VarChar(255)
+  banner_image  String? @db.VarChar(255)
+  profile_image String? @db.VarChar(255)
+  address_line  String? @db.Text
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
   deleted_at    DateTime?
@@ -146,7 +157,7 @@ model Organizer {
   riview_id     Int
 
   user User @relation(fields: [user_id],references: [id])
-  eventsCreated  Event[]        @relation("CreatedEvents")
+  //eventsCreated  Event[]        @relation("CreatedEvents")
 
    @@map("organizers")
   }
@@ -164,10 +175,10 @@ model Review {
   @@map("reviews")
 }
 
-model Catagory {
-  id Int @id @default(autoincrement())
-  catagory_name String @db.VarChar(255)
-  event Event[]
+// model Catagory {
+//   id Int @id @default(autoincrement())
+//   catagory_name String @db.VarChar(255)
+//   event Event[]
 
-  @@map("catagories")
-}
+//   @@map("catagories")
+// }

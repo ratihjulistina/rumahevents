@@ -2,6 +2,8 @@ import express, { Application, NextFunction, Request, Response } from "express";
 import { PORT } from "./config";
 import { ErrorHandler } from "./helpers/response.handler";
 import { eventRouter } from "./routers/event.router";
+import { authRouter } from "./routers/auth.router";
+import cors from "cors";
 // import { authRouter } from "./routers/auth.router";
 // import { transactionRouter } from "./routers/transaction.router";
 
@@ -16,10 +18,12 @@ export class App {
 
   private routes() {
     this.app.use("/api/events", eventRouter());
+    this.app.use("/api/auth", authRouter());
   }
 
   private configure() {
     this.app.use(express.json());
+    this.app.use(cors());
   }
 
   private handleError() {

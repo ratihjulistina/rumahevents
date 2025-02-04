@@ -10,30 +10,34 @@ class EventService {
   async create(req: Request) {
     const {
       name,
-      image_src,
-      price,
+      description,
       location,
       available_seats,
-      description,
+      created_by,
+      price,
+      image_src,
       start_date,
       end_date,
-      created_by,
+      category,
     } = req.body;
     const data: Prisma.EventCreateInput = {
       name,
-      image_src,
-      price,
+      description,
       location,
       available_seats,
-      description,
+      created_by,
+      slug: slugGenerator(name),
+      price,
+      image_src,
       start_date,
       end_date,
-      slug: slugGenerator(name),
-      creator: {
-        connect: {
-          id: created_by,
-        },
-      },
+      category,
+
+      //   creator: {
+      //     connect: {
+      //       id: created_by,
+      //     },
+      //   },
     };
 
     await prisma.event.create({
@@ -77,6 +81,15 @@ class EventService {
       },
     });
   }
+  async getNewestEvent(req: Request) {
+    return await prisma.event.findMany({
+      orderBy: {
+        created_at: "desc",
+      },
+      take: 4,
+    });
+  }
+
   async getList(req: Request) {
     const { page, name } = req.query;
     return await prisma.event.findMany({
