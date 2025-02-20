@@ -11,3 +11,4 @@ export const PORT = process.env.PORT || 8000;
 export const prisma = new PrismaClient();
 
 export const jwt_secret = process.env.SECRET || "";
+export const cloudinary_config = process.env.CLOUDINARY_URL || "";

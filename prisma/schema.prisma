@@ -55,7 +55,7 @@ model User {
 
   // Relations
   points         Point[]        // 1 untuk banyak relasi
-  transactions   Transaction[]  // 1 untuk banyak relasi terhadap transaksi
+  //transactions   Transaction[]  // 1 untuk banyak relasi terhadap transaksi
   organizers Organizer?
   review Review?
   // eventsCreated  Event[]        @relation("CreatedEvents")
@@ -93,14 +93,15 @@ model Event {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   deleted_at    DateTime?
-  category      String    @db.VarChar(100)
+  // category      String    @db.VarChar(100)
 
   // Relations
   // creator       User      @relation("CreatedEvents", fields: [created_by], references: [id])
   coupons       Coupon[]   // onetomany
   transactions Transaction[] // onetomany
   review Review[]
-  //category Catagory[]
+  voucher Voucher?
+  category Category[]
   @@map("events")
 }
 
@@ -120,12 +121,29 @@ model Coupon {
   @@map("coupons")
 }
 
+model Voucher {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  discount    Decimal  @db.Decimal(5, 2) // e.g., 10.00 for 10%
+  valid_from  DateTime
+  valid_to    DateTime
+  event_id    Int      @unique
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  event       Event    @relation(fields: [event_id], references: [id])
+
+  @@map("vouchers")
+}
+
 model Transaction {
   id           Int      @id @default(autoincrement())
-  user_id      Int      @unique
-  payment_proof String  @db.VarChar(255)
+  no_invoice     String
+  user_id      Int      
+  payment_proof String?  @db.VarChar(255)
   status       Transaction_status @default(Waiting_For_Payment)
-  event_id     Int      @unique
+  event_id     Int      
   quantity     Int
   price        Decimal  @db.Decimal(18,2)
   coupon_id    Int?
@@ -136,7 +154,7 @@ model Transaction {
   // Relations
   event        Event        @relation(fields: [event_id], references: [id])
   coupon       Coupon?      @relation(fields: [coupon_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  user         User       @relation(fields: [user_id], references: [id])
+  //user         User       @relation(fields: [user_id], references: [id])
   
   @@map("transactions")
 }
@@ -175,10 +193,10 @@ model Review {
   @@map("reviews")
 }
 
-// model Catagory {
-//   id Int @id @default(autoincrement())
-//   catagory_name String @db.VarChar(255)
-//   event Event[]
+model Category {
+  id Int @id @default(autoincrement())
+  category_name String @db.VarChar(255)
+  event Event[]
 
-//   @@map("catagories")
-// }
+  @@map("categories")
+}

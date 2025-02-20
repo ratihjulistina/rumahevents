@@ -4,6 +4,9 @@ import { ErrorHandler } from "./helpers/response.handler";
 import { eventRouter } from "./routers/event.router";
 import { authRouter } from "./routers/auth.router";
 import cors from "cors";
+import { voucherRouter } from "./routers/voucher.router";
+import { categoryRouter } from "./routers/category.router";
+import { transactionRouter } from "./routers/transaction.router";
 // import { authRouter } from "./routers/auth.router";
 // import { transactionRouter } from "./routers/transaction.router";
 
@@ -19,6 +22,9 @@ export class App {
   private routes() {
     this.app.use("/api/events", eventRouter());
     this.app.use("/api/auth", authRouter());
+    this.app.use("/api/vouchers", voucherRouter());
+    this.app.use("/api/categories", categoryRouter());
+    this.app.use("/api/tickets", transactionRouter());
   }
 
   private configure() {
@@ -42,7 +48,7 @@ export class App {
 
   start() {
     this.app.listen(PORT, () => {
-      console.log("rumahevent API is running on PORT ", PORT);
+      console.log("rumahevents API is running on PORT ", PORT);
     });
   }
 }
