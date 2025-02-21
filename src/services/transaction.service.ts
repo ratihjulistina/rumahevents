@@ -54,18 +54,43 @@ class TransactionService {
   }
 
   async update(req: Request) {
-    const id = Number(req.params.id);
-    const { code, discount, valid_from, valid_to } = req.body;
-    const data: Prisma.VoucherUpdateInput = {};
-    if (code) data.code = code;
-    if (discount) data.discount = discount;
-    if (valid_from) data.valid_from = valid_from;
-    if (valid_to) data.valid_to = valid_to;
+    if (req.method === "POST") {
+      const { ticket_id, status } = req.body;
 
-    await prisma.voucher.update({
-      data,
-      where: { id },
-    });
+      try {
+        const ticket = await prisma.transaction.findUnique({
+          where: { id: ticket_id },
+        });
+
+        if (!ticket) {
+          return new ErrorHandler("Ticket not found", 404);
+        }
+
+        const event = await prisma.event.findUnique({
+          where: { id: ticket.event_id },
+        });
+
+        if (!event) {
+          return new ErrorHandler("Event not found", 404);
+        }
+        if (status === "Expired" || status === "Cancelled") {
+          await prisma.event.update({
+            where: { id: ticket.event_id },
+            data: { available_seats: event.available_seats + ticket.quantity },
+          });
+        }
+
+        return await prisma.transaction.update({
+          where: { id: ticket_id },
+          data: { status },
+        });
+        // return res.status(200).json({ success: true });
+      } catch (error) {
+        console.error("Error updating ticket status:", error);
+      }
+    } else {
+      return new ErrorHandler("Method not allowed", 405);
+    }
   }
   async delete(req: Request) {
     const id = Number(req.params.id);
@@ -123,6 +148,72 @@ class TransactionService {
       }));
     } catch (error) {
       console.error("Error fetching tickets:", error);
+    }
+  }
+  async updatePayment(req: Request) {
+    if (req.method === "POST") {
+      const { ticketId } = req.query;
+      const { bank, payment_proof } = req.body;
+
+      try {
+        // Update the transaction status
+        await prisma.transaction.update({
+          where: { id: Number(ticketId) },
+          data: {
+            status: "Waiting_For_Admin_Confirmation",
+            payment_proof,
+          },
+        });
+
+        // res.status(200).json({ success: true });
+      } catch (error) {
+        console.error("Error updating transaction status:", error);
+      }
+    } else {
+      return new ErrorHandler("Method not allowed", 405);
+    }
+  }
+  async updatePaymentExpired(req: Request) {
+    if (req.method === "POST") {
+      const { ticketId } = req.query;
+
+      try {
+        // Fetch the ticket to get the event ID and quantity
+        const ticket = await prisma.transaction.findUnique({
+          where: { id: Number(ticketId) },
+        });
+
+        if (!ticket) {
+          return new ErrorHandler("Ticket not found", 404);
+        }
+
+        // Fetch the event to update available seats
+        const event = await prisma.event.findUnique({
+          where: { id: ticket.event_id },
+        });
+
+        if (!event) {
+          return new ErrorHandler("Event not found");
+        }
+
+        // Rollback available seats
+        await prisma.event.update({
+          where: { id: ticket.event_id },
+          data: { available_seats: event.available_seats + ticket.quantity },
+        });
+
+        // Update the ticket status to Expired
+        await prisma.transaction.update({
+          where: { id: Number(ticketId) },
+          data: { status: "Expired" },
+        });
+
+        // res.status(200).json({ success: true });
+      } catch (error) {
+        console.error("Error expiring ticket:", error);
+      }
+    } else {
+      throw new ErrorHandler("Method not allowed", 405);
     }
   }
 }

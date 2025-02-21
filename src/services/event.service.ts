@@ -168,10 +168,10 @@ class EventService {
     if (id) {
       await prisma.event.update({
         where: {
-          id: id, // Update the event with the given eventId
+          id: id, 
         },
         data: {
-          image_src: secure_url, // Save the Cloudinary URL in the image_src field
+          image_src: secure_url, 
         },
       });
     } else {

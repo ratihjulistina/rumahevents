@@ -7,6 +7,7 @@ import cors from "cors";
 import { voucherRouter } from "./routers/voucher.router";
 import { categoryRouter } from "./routers/category.router";
 import { transactionRouter } from "./routers/transaction.router";
+import { reviewRouter } from "./routers/review.router";
 // import { authRouter } from "./routers/auth.router";
 // import { transactionRouter } from "./routers/transaction.router";
 
@@ -25,6 +26,7 @@ export class App {
     this.app.use("/api/vouchers", voucherRouter());
     this.app.use("/api/categories", categoryRouter());
     this.app.use("/api/tickets", transactionRouter());
+    this.app.use("/api/reviews", reviewRouter());
   }
 
   private configure() {

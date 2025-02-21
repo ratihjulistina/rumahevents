@@ -55,6 +55,27 @@ class TransactionController {
     }
   }
 
+  async updatePaymentTransaction(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const data = await transactionService.updatePayment(req);
+      responseHandler(res, "new event has been updated", data);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async expiredTransaction(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await transactionService.updatePaymentExpired(req);
+      responseHandler(res, "new event has been updated", data);
+    } catch (error) {
+      next(error);
+    }
+  }
   //   async getValidateVoucher(req: Request, res: Response, next: NextFunction) {
   //     try {
   //       const data = await voucherService.getValidateList(req);
